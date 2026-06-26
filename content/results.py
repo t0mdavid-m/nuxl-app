@@ -24,43 +24,51 @@ params = page_setup()
 def process_mzML_file(filepath):
     """
     Loads an mzML file, extracts MS2 spectra, and normalizes the peak intensities.
-
-    Parameters:
-    filepath (str): The file path to the mzML file.
-
-    Returns:
-    MSExperiment: An MSExperiment object containing the normalized MS2 spectra.
     """
-    #print("process mzML file: ", filepath)
+
+    filepath = Path(filepath).resolve()
+
+    #st.write(f"mzML path: {filepath}")
+    #st.write(f"File exists: {filepath.exists()}")
+    #st.write(f"Is file: {filepath.is_file()}")
+
+    if not filepath.is_file():
+        st.error(f"mzML file not found: {filepath}")
+        return None
 
     try:
-        # Initialize an MSExperiment object
         exp = MSExperiment()
-        
-        # Load the mzML file into the MSExperiment object
-        MzMLFile().load(filepath, exp)
 
-        # Create a new MSExperiment object to store MS2 spectra
+        # pyopenms often expects a string path, not a Path object
+        MzMLFile().load(str(filepath), exp)
+
+        #st.write(f"Total spectra loaded: {exp.size()}")
+
         MS2 = MSExperiment()
-        
-        # Iterate over all spectra in the experiment
+
         for spec in exp:
-            # Check if the spectrum is an MS2 spectrum
             if spec.getMSLevel() == 2:
-                # Add the MS2 spectrum to the MS2 experiment object
                 MS2.addSpectrum(spec)
 
-        # Normalize peak intensities in the MS2 spectra
-        normalizer = Normalizer()  # Create a Normalizer object
-        param = normalizer.getParameters()  # Get the default parameters
-        param.setValue("method", "to_one")  # Set normalization method to "to_one"
-        normalizer.setParameters(param)  # Apply the parameters to the normalizer
-        normalizer.filterPeakMap(MS2)  # Normalize the peaks in the MS2 spectra
+        #st.write(f"MS2 spectra found: {MS2.size()}")
 
-        return MS2  # Return the MSExperiment object containing normalized MS2 spectra
+        if MS2.size() == 0:
+            st.warning(
+                "The mzML file was loaded successfully, but it contains no MS2 spectra."
+            )
+            return MS2
+
+        normalizer = Normalizer()
+        param = normalizer.getParameters()
+        param.setValue("method", "to_one")
+        normalizer.setParameters(param)
+        normalizer.filterPeakMap(MS2)
+
+        return MS2
 
     except Exception as e:
-        return None  # Return None if any exception occurs
+        st.exception(e)
+        return None
 
 def get_mz_intensities_from_ms2(MS2_spectras, native_id):
     """
@@ -159,10 +167,23 @@ with tabs[0]:
             if file_name_wout_out == "Example": 
                 file_name_wout_out = "Example_RNA_UV_XL"
 
-            MS2 = process_mzML_file(os.path.join(Path.cwd().parent ,  str(st.session_state.workspace)[3:] , "mzML-files" ,f"{file_name_wout_out}.mzML"))
+            mzml_path = (
+                Path.cwd().parent
+                / str(st.session_state.workspace)
+                / "mzML-files"
+                / f"{file_name_wout_out}.mzML"
+            )
+
+            st.info(f"Path: {mzml_path}")
+
+            MS2 = process_mzML_file(mzml_path)
+
             if MS2 is None:
-                st.warning("The corresponding " + file_name_wout_out + ".mzML file could not be found. Please re-upload the mzML file to visualize all peaks.")
-                            
+                st.info(f"Path: {mzml_path}")
+                st.warning(
+                    f"The corresponding {file_name_wout_out}.mzML file could not be found. Please re-upload the mzML file to visualize all peaks."
+                )
+
             if CSM_ is None: 
                 st.warning("No CSMs found in selected idXML file")
             else:
