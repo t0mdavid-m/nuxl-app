@@ -1612,7 +1612,7 @@ Started: {status.get('started_at', 'N/A')}""")
                     dict_to_markdown(value)
                 else:
                     # Add key-value pairs as list items
-                    markdown.append(f">> {key}: **{value}**\n")
+                    markdown.append(f"\n {key}: **{value}**\n")
 
         if len(general) > 0:
             markdown.append("**Parameters**")
@@ -1623,13 +1623,21 @@ Started: {status.get('started_at', 'N/A')}""")
         if len(python) > 0:
             markdown.append("**Python Scripts**")
             dict_to_markdown(python)
-        return "\n".join(markdown)
+        return " ".join(markdown)
 
     def export_parameters_markdown(self):
         markdown = []
 
-        url = f"https://github.com/{st.session_state.settings['github-user']}/{st.session_state.settings['repository-name']}"
+        url = f"https://github.com/Arslan-Siraj/{st.session_state.settings['repository-name']}"
         tools = [p.stem for p in Path(self.parameter_manager.ini_dir).iterdir()]
+
+        try:
+            openms_version = st.session_state.get("settings", {}).get("openms-version", "unknown")
+            app_version = st.session_state.get("settings", {}).get("version", "unknown")
+        except Exception:
+            openms_version = "unknown"
+            app_version = "unknown"
+
         if len(tools) > 1:
             tools = ", ".join(tools[:-1]) + " and " + tools[-1]
 
@@ -1640,11 +1648,10 @@ Started: {status.get('started_at', 'N/A')}""")
         if result.returncode == 0:
             version = result.stderr.split("Version: ")[1].split("-")[0]
 
-        NuXL_app_v = "develop-branch-41ce6cf"
         markdown.append(
-            f"""Data was processed using **{st.session_state.settings['app-name']}** ([{url}]({url})), a web application based on the OpenMS WebApps framework [1].
+            f"""Data was processed using **{st.session_state.settings['app-name']} (version {app_version})** ([{url}]({url})), a web application based on the OpenMS WebApps framework [1].
 OpenMS ([https://www.openms.de](https://www.openms.de)) is a free and open-source software for LC-MS data analysis [2].
-The protein-RNA/DNA samples are analysed with NuXL search engine version **OpenMS {NuXL_app_v}** Tag **NuXLApp** [3].
+The samples are analysed with NuXL search engine version **OpenMS {openms_version}**[3].
 
 [1] Müller, Tom David, et al. "OpenMS WebApps: Building User-Friendly Solutions for MS Analysis." (2025) [https://doi.org/10.1021/acs.jproteome.4c00872](https://doi.org/10.1021/acs.jproteome.4c00872).
 

@@ -16,7 +16,7 @@ st.title('⚙️ Rescoring Workflow',
         "(see Proteomics 2023, DOI: 10.1002/pmic.202300144)."
         )
 
-t = st.tabs(["📁 **File Upload**", "⚙️ **Configure**", "🚀 **Run**"])
+t = st.tabs(["📁 **Files**", "⚙️ **Configure**", "🚀 **Run**"])
 with t[0]:
     wf.show_file_upload_section()
 

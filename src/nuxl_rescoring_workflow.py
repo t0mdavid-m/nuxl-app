@@ -13,7 +13,7 @@ import requests
 import streamlit as st
 
 from src.workflow.WorkflowManager import WorkflowManager
-
+from src.nuxl_view import show_fig
 
 RESOURCE_URL = (
     "https://github.com/Arslan-Siraj/NuXL_rescore_resources/releases/download/"
@@ -21,6 +21,14 @@ RESOURCE_URL = (
 )
 
 PROTOCOLS = ["RNA_DEB", "RNA_NM", "RNA_4SU", "RNA_UV", "RNA_Other"]
+
+PROTOCOL_RT_MODEL_DESCRIPTIONS = {
+    "RNA_DEB": "specific RT model fine-tuned for RNA DEB protocol",
+    "RNA_NM": "specific RT model fine-tuned for RNA NM protocol",
+    "RNA_4SU": "specific RT model fine-tuned for RNA 4SU protocol",
+    "RNA_UV": "generic RT model fine-tuned across RNA All protocol modifications",
+    "RNA_Other": "generic RT model fine-tuned across RNA All protocol modifications",
+}
 
 EXCLUDED_IDXML_MARKERS = [
     "0.0100",
@@ -306,7 +314,7 @@ class Workflow(WorkflowManager):
 
     @st.fragment
     def configure(self) -> None:
-        st.markdown("### Rescoring input")
+        #st.markdown("### Rescoring input")
 
         idxml_options = self._available_idxml_files()
 
@@ -347,7 +355,7 @@ class Workflow(WorkflowManager):
                 "features are enabled."
             )
 
-        st.markdown("### Rescoring parameters")
+        #st.markdown("### Rescoring parameters")
 
         self.ui.input_widget(
             key="protocol",
@@ -410,20 +418,26 @@ class Workflow(WorkflowManager):
 
         rescore_url = "https://github.com/Arslan-Siraj/NuXL_rescore"
 
-        url = f"https://github.com/{st.session_state.settings['github-user']}/{st.session_state.settings['repository-name']}"
+        url = f"https://github.com/Arslan-Siraj/{st.session_state.settings['repository-name']}"
         app_name = st.session_state.settings.get("app-name", "NuXLApp")
+
+        try:
+            openms_version = st.session_state.get("settings", {}).get("openms-version", "unknown")
+            app_version = st.session_state.get("settings", {}).get("version", "unknown")
+        except Exception:
+            openms_version = "unknown"
+            app_version = "unknown"
 
         lines = [
             (
-                f"The protein–nucleic acid rescoring workflow runs in **{app_name}**"
+                f"The protein–nucleic acid rescoring workflow runs in **{app_name} (version {app_version})**"
                 f"{f' ([{url}]({url}))' if url else ''}, "
                 "a web application based on the OpenMS WebApps framework [1]."
             ),
-            "",
             (
                 "This workflow takes NuXL search-engine output from protein–nucleic acid "
                 "cross-link identification [2] and adapts a data-driven rescoring pipeline "
-                f"using predicted retention time and fragment-ion intensity features: {rescore_url} [3]. "
+                f"using predicted retention time and fragment-ion intensity features ({rescore_url}) [3]. "
                 "These additional features improve discrimination between correct and incorrect "
                 "matches and can increase identification confidence with Percolator."
             ),
@@ -469,6 +483,13 @@ class Workflow(WorkflowManager):
                 clean_value = Path(str(value)).name if Path(str(value)).exists() else str(value)
 
             lines.append(f"> {key}: **{clean_value}**")
+
+            if key == "protocol":
+                rt_model_description = PROTOCOL_RT_MODEL_DESCRIPTIONS.get(
+                    str(value),
+                    "generic RNA-All retention-time model",
+                )
+                lines.append(f"> RT model: **{rt_model_description}**")
 
         return "\n".join(lines)
 
@@ -561,12 +582,12 @@ class Workflow(WorkflowManager):
         os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
 
         self.logger.log(f"Rescoring idXML file: {idxml_file}")
-        self.logger.log(f"Protocol: {protocol}")
-        self.logger.log(f"Retention-time features: {retention_time_features}")
-        self.logger.log(f"Max-correlation features: {max_correlation_features}")
-        self.logger.log(f"Resolved NuXL-rescore command prefix: {self._nuxl_rescore_command_prefix()}")
-        self.logger.log(f"Resolved Percolator: {self._percolator_path()}")
-        self.logger.log(f"Resolved PercolatorAdapter: {self._percolator_adapter_path()}")
+        #self.logger.log(f"Protocol: {protocol}")
+        #self.logger.log(f"Retention-time features: {retention_time_features}")
+        #self.logger.log(f"Max-correlation features: {max_correlation_features}")
+        #self.logger.log(f"Resolved NuXL-rescore command prefix: {self._nuxl_rescore_command_prefix()}")
+        #self.logger.log(f"Resolved Percolator: {self._percolator_path()}")
+        #self.logger.log(f"Resolved PercolatorAdapter: {self._percolator_adapter_path()}")
         self.logger.log("Running NuXL rescoring...")
 
         success = self.executor.run_command(args)
@@ -590,8 +611,9 @@ class Workflow(WorkflowManager):
 
         self._remove_intermediate_files(result_dir)
 
+        pseudoroc_pdf = None
         if plot_pseudoroc:
-            self._try_generate_pseudoroc_plot(
+            pseudoroc_pdf = self._try_generate_pseudoroc_plot(
                 idxml_original_100_xls=original_100_xls,
                 idxml_rescored_100_xls=expected_100_xls,
                 exp_name=id_stem,
@@ -622,6 +644,9 @@ class Workflow(WorkflowManager):
             result_dir=result_dir,
             zip_path=zip_path,
             global_zip_path=global_zip_path,
+            idxml_original_100_xls=original_100_xls,
+            idxml_rescored_100_xls=expected_100_xls,
+            pseudoroc_pdf=pseudoroc_pdf,
         )
 
         self.logger.log("NuXL rescoring completed successfully.")
@@ -1031,25 +1056,25 @@ class Workflow(WorkflowManager):
         idxml_rescored_100_xls: Path,
         exp_name: str,
         result_dir: Path,
-    ) -> None:
+    ) -> Path | None:
         if not idxml_original_100_xls or not idxml_original_100_xls.exists():
             self.logger.log(
                 "WARNING: Pseudo-ROC plot skipped because the original "
                 "_perc_1.0000_XLs.idXML reference file was not found."
             )
-            return
+            return None
 
         if not idxml_rescored_100_xls.exists():
             self.logger.log(
                 "WARNING: Pseudo-ROC plot skipped because the rescored "
                 "_perc_1.0000_XLs.idXML file was not found."
             )
-            return
+            return None
 
         try:
             from src.view import plot_FDR_plot
 
-            _, output_pdf = plot_FDR_plot(
+            fig, output_pdf = plot_FDR_plot(
                 idXML_id=str(idxml_original_100_xls),
                 idXML_extra=str(idxml_rescored_100_xls),
                 FDR_level=20,
@@ -1057,14 +1082,20 @@ class Workflow(WorkflowManager):
             )
 
             output_pdf = Path(output_pdf)
-            if output_pdf.exists() and output_pdf.parent != result_dir:
+            if not output_pdf.exists():
+                self.logger.log("WARNING: Pseudo-ROC plot PDF was not generated.")
+                return None
+
+            if output_pdf.parent != result_dir:
                 target_pdf = self._unique_file_path(result_dir / output_pdf.name)
                 shutil.copy2(output_pdf, target_pdf)
                 output_pdf = target_pdf
 
-            self.logger.log(f"Generated pseudo-ROC plot: {output_pdf}")
+            self.logger.log(f"Generated pseudo-ROC plot PDF: {output_pdf}")
+            return output_pdf
         except Exception as exc:
             self.logger.log(f"WARNING: Failed to generate pseudo-ROC plot: {exc}")
+            return None
 
     def _write_rescoring_log(
         self,
@@ -1189,6 +1220,9 @@ class Workflow(WorkflowManager):
         result_dir: Path,
         zip_path: Path,
         global_zip_path: Path,
+        idxml_original_100_xls: Path | None = None,
+        idxml_rescored_100_xls: Path | None = None,
+        pseudoroc_pdf: Path | None = None,
     ) -> None:
         state_file = self._latest_download_state_file()
         state_file.parent.mkdir(parents=True, exist_ok=True)
@@ -1199,6 +1233,9 @@ class Workflow(WorkflowManager):
             "result_dir": str(result_dir),
             "zip_path": str(zip_path),
             "global_zip_path": str(global_zip_path),
+            "idxml_original_100_xls": str(idxml_original_100_xls) if idxml_original_100_xls else "",
+            "idxml_rescored_100_xls": str(idxml_rescored_100_xls) if idxml_rescored_100_xls else "",
+            "pseudoroc_pdf": str(pseudoroc_pdf) if pseudoroc_pdf else "",
         }
 
         state_file.write_text(json.dumps(state, indent=2), encoding="utf-8")
@@ -1211,6 +1248,37 @@ class Workflow(WorkflowManager):
             "rescoring",
             "latest_rescoring_download.json",
         )
+
+    def _render_pseudoroc_plot_before_download(self, state: dict[str, Any]) -> None:
+        """Show the pseudo-ROC figure before the ZIP download button."""
+        pseudoroc_pdf = Path(state.get("pseudoroc_pdf") or "")
+        idxml_original_100_xls = Path(state.get("idxml_original_100_xls") or "")
+        idxml_rescored_100_xls = Path(state.get("idxml_rescored_100_xls") or "")
+
+        if not pseudoroc_pdf.exists():
+            return
+
+        if not idxml_original_100_xls.exists() or not idxml_rescored_100_xls.exists():
+            self.logger.log(
+                "WARNING: Pseudo-ROC plot display skipped because the idXML files were not found."
+            )
+            return
+
+        try:
+            from src.view import plot_FDR_plot
+
+            fig, _ = plot_FDR_plot(
+                idXML_id=str(idxml_original_100_xls),
+                idXML_extra=str(idxml_rescored_100_xls),
+                FDR_level=20,
+                exp_name=str(state.get("id_stem") or idxml_rescored_100_xls.stem),
+            )
+            show_fig(
+                fig,
+                f"{idxml_rescored_100_xls.stem}_PseudoROC_plot_rescoring",
+            )
+        except Exception as exc:
+            self.logger.log(f"WARNING: Failed to display pseudo-ROC plot: {exc}")
 
     def _render_latest_success_download(self) -> None:
         log_file = Path(self.workflow_dir, "logs", "minimal.log")
@@ -1239,17 +1307,19 @@ class Workflow(WorkflowManager):
                 return
 
         st.divider()
-        st.success("⚡️ **NuXL Rescoring Completed Successfully!** ⚡️")
-        st.info("Preparing download link for rescoring output files ...", icon="ℹ️")
-
+        #st.success("⚡️ **NuXL Rescoring Completed Successfully!** ⚡️")
+        st.info("Plotting pseudo-ROC curve and preparing download link for rescoring output files ...", icon="ℹ️")
+        self._render_pseudoroc_plot_before_download(state)
+ 
         with open(zip_path, "rb") as handle:
             st.download_button(
-                label=f"⬇️ {state.get('id_stem', zip_path.stem)}_rescoring_out_files",
+                label=f"⬇️ Download {state.get('id_stem', zip_path.stem)}_rescoring_out_files",
                 data=handle,
                 file_name=zip_path.name,
                 mime="application/zip",
                 use_container_width=True,
+                type="primary",
                 key="latest-rescoring-download",
             )
 
-        st.caption("Rescoring output files were copied directly to global result-files.")
+        st.caption("Rescoring output files were copied to the global result-files, could be found on **Results** page. ")

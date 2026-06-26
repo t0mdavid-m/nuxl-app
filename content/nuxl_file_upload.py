@@ -137,7 +137,7 @@ with tabs[2]:
         import io
         import zipfile
 
-        zip_url = "https://github.com/Arslan-Siraj/NuXL_rescore_resources/releases/download/0.0.2/RNA_DEB_Protein_NA_XL_example_files.zip"
+        zip_url = "https://github.com/Arslan-Siraj/NuXL_rescore_resources/releases/download/0.0.3/RNA_DEB_Protein_NA_XL_example_files.zip"
 
         st.info("Downloading example data files...")
 

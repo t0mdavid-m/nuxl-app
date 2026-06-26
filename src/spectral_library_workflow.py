@@ -268,11 +268,6 @@ class Workflow(WorkflowManager):
                 "No NuXL idXML result files are synced yet. Go to the Upload tab "
                 "and click **Sync files from global workspace** after running NuXL."
             )
-        else:
-            st.info(
-                f"{len(idxml_files)} NuXL idXML file(s) are available. "
-                "They will be matched automatically to the selected mzML/raw files."
-            )
 
         msfragger_files = self._available_input_files(
             key="msfragger-library",
@@ -290,12 +285,10 @@ class Workflow(WorkflowManager):
                 help="Choose None to skip iRT alignment.",
             )
         else:
-            st.info(
-                "Optional: place an MSFragger .tsv library in global result-files, "
-                "then sync again to enable iRT alignment."
-            )
+            st.info("MSFragger library TSV file not available for iRT alignment."
+                "Optional: upload the library file (.tsv) at **Files** tab for iRT alignment."            )
 
-        st.markdown("### Spectral library generation parameters")
+        #st.markdown("### Spectral library generation parameters")
 
         cols = st.columns(2)
 
@@ -910,22 +903,23 @@ class Workflow(WorkflowManager):
                 return
 
         st.divider()
-        st.success("⚡️ **Library Generation Completed Successfully!** ⚡️")
+        #st.success("⚡️ **Library Generation Completed Successfully!** ⚡️")
         st.info("Preparing download link for library output files ...", icon="ℹ️")
 
         with open(zip_path, "rb") as handle:
             st.download_button(
-                label=f"⬇️ {state.get('library_name', zip_path.stem)}_library_out_files",
+                label=f"⬇️ Download {state.get('library_name', zip_path.stem)}_library_out_files",
                 data=handle,
                 file_name=zip_path.name,
                 mime="application/zip",
                 use_container_width=True,
+                type="primary",
                 key="latest-dia-library-download",
             )
 
         global_output_dir = state.get("global_output_dir")
         if global_output_dir:
-            st.caption(f"Copied library output files directly to global result-files: `{global_output_dir}`")
+            st.caption(f"Library output files were copied to the global result-files, could be found on **Results** page. ")
 
     def _tool_name(self, executable: str) -> str:
         local_path = Path.cwd() / executable
@@ -949,6 +943,46 @@ class Workflow(WorkflowManager):
             for file in ms_files
         ] or ["not selected"]
 
+        idxml_file_names = ["automatically matched during workflow run"]
+
+        try:
+            resolved_ms_files = []
+
+            if ms_files and ms_files != ["not selected"]:
+                resolved_ms_files = [
+                    file
+                    for file in self.file_manager.get_files(ms_files)
+                    if Path(file).suffix.lower() in {".mzml", ".raw"}
+                ]
+
+            available_idxml_files = [
+                str(file)
+                for file in self._available_input_files(
+                    key="idXML-files",
+                    allowed_suffixes={".idxml"},
+                )
+            ]
+
+            matched_idxmls, missing_reports = self._match_required_idxml_files(
+                mzml_files=resolved_ms_files,
+                idxml_files=available_idxml_files,
+            )
+
+            if matched_idxmls:
+                idxml_file_names = [
+                    Path(file).name
+                    for file in matched_idxmls
+                ]
+            elif available_idxml_files:
+                idxml_file_names = [
+                    "available, but no matching idXML pair found for selected MS file(s)"
+                ]
+            else:
+                idxml_file_names = ["not available"]
+
+        except Exception:
+            idxml_file_names = ["automatically matched during workflow run"]
+
         msfragger_library = params.get("msfragger-library", "None")
         if not msfragger_library:
             msfragger_library = "None"
@@ -956,24 +990,30 @@ class Workflow(WorkflowManager):
         run_fileinfo = params.get("run_fileinfo", True)
         irt_model = params.get("irt_calibration_model", "linear")
 
+        try:
+            openms_version = st.session_state.get("settings", {}).get("openms-version", "unknown")
+            app_version = st.session_state.get("settings", {}).get("version", "unknown")
+        except Exception:
+            openms_version = "unknown"
+            app_version = "unknown"
+
         url = f"https://github.com/{st.session_state.settings['github-user']}/{st.session_state.settings['repository-name']}"
         app_name = st.session_state.settings.get("app-name", "NuXLApp")
         DIA_library_generation_url = "https://github.com/timosachsenberg/NuXLDIA"
 
         lines = [
             (
-                f"The DIA library generation workflow runs in **{app_name}**"
+                f"The DIA library generation workflow runs in **{app_name} (version {app_version})**"
                 f"{f' ([{url}]({url}))' if url else ''}, "
                 "a web application based on the OpenMS WebApps framework [1]."
             ),
-            "",
             (
-                "This workflow converts NuXL DDA identification results into a DIA-NN-compatible "
-                "spectral library [2]. It uses NuXL crosslinks at 1% CSM-level FDR and "
-                "linear peptide identifications at 1% PSM-level FDR, removes decoys, filters "
-                "localized crosslinks, removes redundant precursors, reformats modified "
-                "sequences for DIA-NN, keeps b/y fragment ions, and optionally performs iRT "
-                f"alignment using an uploaded MSFragger library. NuXLDIA: {DIA_library_generation_url}."
+                f"This workflow converts NuXL **(version {openms_version})** Data Dependent Acquisition (DDA) identification results into a Data Independent Acquisition (DIA) tool DIA-NN-compatible "
+                f"spectral library [2]. It uses NuXL crosslinks at 1% CSM-level FDR and "
+                f"linear peptide identifications at 1% PSM-level FDR, removes decoys, filters "
+                f"localized crosslinks, removes redundant precursors, reformats modified "
+                f"sequences for DIA-NN, keeps b/y fragment ions, and optionally performs iRT "
+                f"alignment using an uploaded MSFragger library with NuXLDIA python script ({DIA_library_generation_url})."
             ),
             "",
             (
@@ -994,9 +1034,8 @@ class Workflow(WorkflowManager):
             "**Spectra Library generation parameters**",
             "",
             f"> MS file(s): **{', '.join(ms_file_names)}**",
-            "> NuXL idXML files: **matched automatically from workspace result-files**",
+            f"> idXML files: **{', '.join(idxml_file_names)}**",
             f"> Optional MSFragger iRT library: **{Path(str(msfragger_library)).name if msfragger_library != 'None' else 'None'}**",
-            f"> Library output name: **{library_name}**",
             f"> iRT calibration model: **{irt_model}**",
             f"> Run mzML FileInfo: **{run_fileinfo}**",
             "",

@@ -936,8 +936,8 @@ class Workflow(WorkflowManager):
             return
 
         st.divider()
-        st.success("NuXL analysis completed successfully.")
-
+        #st.success("NuXL analysis completed successfully.")
+        st.info("Preparing download link for NuXL output files ...", icon="ℹ️")
         files = state.get("files", [])
         if files:
             st.dataframe(
@@ -989,10 +989,7 @@ class Workflow(WorkflowManager):
             shutil.copy2(source_file, target_file)
             copied += 1
 
-        self.logger.log(
-            f"Copied {copied} NuXL result file(s) to global result-files: "
-            f"{global_result_dir}"
-        )
+        self.logger.log(f"NuXL output files were copied to the global result-files, could be found on **Results** page.")
 
     def _write_search_parameter_log(
         self,

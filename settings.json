@@ -3,6 +3,7 @@
     "github-user": "OpenMS",
     "version": "0.8.0",
     "repository-name": "nuxl-app",
+    "openms-version": "develop-branch-41ce6cf/Tag:NuXLApp",
     "legal_links": {
         "impressum": "https://openms.de/impressum",
         "privacy": "https://openms.de/privacy",
