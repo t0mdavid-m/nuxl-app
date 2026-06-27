@@ -189,6 +189,22 @@ def show_result_zip_download_button_v(
     )
 
 
+def is_RDDF_csm_level_result_v(result_filename: str, fdr_value: str | None) -> bool:
+    """Return True for RDDF rescoring outputs at CSM-level FDR thresholds.
+
+    RDDF rescoring produces CSM-level output. Therefore, protein-output tabs
+    show an explanatory warning instead of a generic missing-file warning when
+    the corresponding protein report is absent at 1% or 10% FDR.
+    """
+    if not str(result_filename).startswith("RDDF_"):
+        return False
+
+    try:
+        return float(fdr_value) in (0.0100, 0.1000)
+    except (TypeError, ValueError):
+        return False
+
+
 ########################
 
 ### main content of page
@@ -267,7 +283,7 @@ with tabs[0]:
                     / f"{file_name_wout_out}.mzML"
                 )
 
-                st.info(f"Path: {mzml_path}")
+                #st.info(f"Path: {mzml_path}")
 
                 if CSM_ is None: 
                     st.warning("No CSMs found in selected idXML file")
@@ -516,10 +532,22 @@ with tabs[0]:
                     else:
                         match = re.search(r"proteins([\d.]+)_XLs", protein_path.name)
                         value = match.group(1) if match else None
-                        if float(value)>0.1000:
-                            warning_message = f"Proteins are not reported at {value}. Protein reports are only generated at 1% and 10% FDR, and only if XL FDR thresholds (0.01 and 0.10) or higher are specified."
+
+                        if is_RDDF_csm_level_result_v(selected_file, value):
+                            warning_message = (
+                                "Rescoring workflow (output start with **RDDF_**) gives output CSMs only."
+                            )
+                        elif value is not None and float(value) > 0.1000:
+                            warning_message = (
+                                f"Proteins are not reported at {value}. Protein reports are only "
+                                "generated at 1% and 10% FDR, and only if XL FDR thresholds "
+                                "(0.01 and 0.10) or higher are specified."
+                            )
                         else:
-                            warning_message = f"{protein_path.name} file not exist in current workspace, please rerun analysis or upload."
+                            warning_message = (
+                                f"{protein_path.name} file not exist in current workspace, "
+                                "please rerun analysis or upload."
+                            )
 
                         # Display the warning message across all tabs
                         for i, tab in enumerate(tabs_, start=1):
