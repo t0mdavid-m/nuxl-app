@@ -22,3 +22,7 @@ NuXL/
 OpenMS-NuXLApp.lnk
 *.exe
 *.bat
+bash.exe.stackdump
+build-arm64.log
+build-amd64.log
+build-arm.log
