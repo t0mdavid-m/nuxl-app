@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 import matplotlib.pyplot as plt
-from pyopenms import *
+import pyopenms as poms
 
 @st.cache_resource
 def plot_ms2_spectrum(spec, title, color):
@@ -177,7 +177,7 @@ def plot_FDR_plot(idXML_id, idXML_extra, exp_name= "FileName", FDR_level=10):
     # ---------- Without extra features ----------
     protein_ids = []
     peptide_ids = []
-    IdXMLFile().load(idXML_id, protein_ids, peptide_ids)
+    poms.IdXMLFile().load(idXML_id, protein_ids, peptide_ids)
 
     Psm_score_list = []
     for pep_id in peptide_ids:
@@ -195,7 +195,7 @@ def plot_FDR_plot(idXML_id, idXML_extra, exp_name= "FileName", FDR_level=10):
     # ---------- With extra features ----------
     protein_ids_extra = []
     peptide_ids_extra = []
-    IdXMLFile().load(idXML_extra, protein_ids_extra, peptide_ids_extra)
+    poms.IdXMLFile().load(idXML_extra, protein_ids_extra, peptide_ids_extra)
 
     Psm_score_list_extra = []
     for pep_id in peptide_ids_extra:

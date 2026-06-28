@@ -295,6 +295,7 @@ def readAndProcessIdXML(input_file, top=1):
     IdXMLFile().load(str(input_file), prot_ids, pep_ids)
     meta_value_keys = []
     rows = []
+    all_columns = None
     #st.write("len of pep_ids:", len(pep_ids))
     if len(pep_ids)>0:
         for peptide_id in pep_ids:
@@ -359,6 +360,9 @@ def readAndProcessIdXML(input_file, top=1):
                 psm_index += 1
                 break; # parse only first hit
     
+        if all_columns is None:
+            return pd.DataFrame()
+
         df =pd.DataFrame(rows, columns=all_columns)
         convert_dict = {'SpecId': str,
                         'PSMId': int,

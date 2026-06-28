@@ -324,13 +324,25 @@ class NuXLLibraryConverter:
 
         charge_col = NUXL_COLUMNS['charge']
 
-        for df_attr in ['_xl_df', '_pep_df']:
-            df = getattr(self, df_attr)
-            if df is not None and len(df) > 0:
-                before = len(df)
-                df = df[df[charge_col] <= max_charge].copy()
-                setattr(self, df_attr, df)
-                self.logger.info(f"Filtered {df_attr} by charge <= {max_charge}: {before} -> {len(df)}")
+        if self._xl_df is not None and len(self._xl_df) > 0:
+            before = len(self._xl_df)
+            self._xl_df = self._xl_df.loc[
+                self._xl_df[charge_col] <= max_charge
+            ].copy()
+            self.logger.info(
+                f"Filtered _xl_df by charge <= {max_charge}: "
+                f"{before} -> {len(self._xl_df)}"
+            )
+
+        if self._pep_df is not None and len(self._pep_df) > 0:
+            before = len(self._pep_df)
+            self._pep_df = self._pep_df.loc[
+                self._pep_df[charge_col] <= max_charge
+            ].copy()
+            self.logger.info(
+                f"Filtered _pep_df by charge <= {max_charge}: "
+                f"{before} -> {len(self._pep_df)}"
+            )
 
         return self
 
@@ -424,15 +436,14 @@ class NuXLLibraryConverter:
         mz_col = NUXL_COLUMNS['mz']
 
         has_ccs = False
-        for df_attr in ['_xl_df', '_pep_df']:
-            df = getattr(self, df_attr)
-            if df is not None and len(df) > 0:
-                if ccs_col not in df.columns:
-                    df['_ion_mobility'] = np.nan
-                    setattr(self, df_attr, df)
-                    continue
+
+        if self._xl_df is not None and len(self._xl_df) > 0:
+            self._xl_df = self._xl_df.copy()
+            if ccs_col not in self._xl_df.columns:
+                self._xl_df.loc[:, '_ion_mobility'] = np.nan
+            else:
                 has_ccs = True
-                df['_ion_mobility'] = df.apply(
+                self._xl_df.loc[:, '_ion_mobility'] = self._xl_df.apply(
                     lambda row: self._ccs_to_im(
                         row[ccs_col],
                         row[charge_col],
@@ -440,7 +451,21 @@ class NuXLLibraryConverter:
                     ),
                     axis=1
                 )
-                setattr(self, df_attr, df)
+
+        if self._pep_df is not None and len(self._pep_df) > 0:
+            self._pep_df = self._pep_df.copy()
+            if ccs_col not in self._pep_df.columns:
+                self._pep_df.loc[:, '_ion_mobility'] = np.nan
+            else:
+                has_ccs = True
+                self._pep_df.loc[:, '_ion_mobility'] = self._pep_df.apply(
+                    lambda row: self._ccs_to_im(
+                        row[ccs_col],
+                        row[charge_col],
+                        row[mz_col]
+                    ),
+                    axis=1
+                )
 
         if has_ccs:
             self.logger.info("Converted CCS to ion mobility")

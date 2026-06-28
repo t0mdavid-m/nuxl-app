@@ -5,7 +5,7 @@ from src.nuxl_result_files_v import readAndProcessIdXML_v, read_protein_table_v
 import plotly.graph_objects as go
 from src.nuxl_view import plot_ms2_spectrum, plot_ms2_spectrum_full, download_table, show_fig
 from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, ColumnsAutoSizeMode
-from pyopenms import *
+import pyopenms as poms
 import re
 import io
 import zipfile
@@ -37,8 +37,8 @@ def load_ms2_peak_map_v(mzml_path_str: str, file_mtime: float):
         return None
 
     try:
-        exp = MSExperiment()
-        MzMLFile().load(str(mzml_path), exp)
+        exp = poms.MSExperiment()
+        poms.MzMLFile().load(str(mzml_path), exp)
 
         ms2_peak_map = {}
 
