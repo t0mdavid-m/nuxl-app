@@ -53,8 +53,6 @@ jobs:
         include:
           - variant: full
             dockerfile: Dockerfile
-          - variant: simple
-            dockerfile: Dockerfile_simple
     steps:
       - uses: actions/checkout@v4
 
@@ -126,7 +124,7 @@ jobs:
     # arm64 path. Runs on a native ARM64 runner (no QEMU). Produces per-arch
     # tags `<ref>-<variant>-arm64`; gets merged into the multi-arch manifest
     # under `<ref>-<variant>` by the `create-manifest` job below. The build
-    # uses a separate `Dockerfile.arm` / `Dockerfile_simple.arm` that swaps
+    # uses a separate `Dockerfile.arm` that swaps
     # the miniforge installer to aarch64 and (for the full variant) guards
     # the THIRDPARTY/Linux/aarch64 copy. The built image is also uploaded as
     # an artifact so the apptainer / nginx / traefik integration jobs can
@@ -142,8 +140,6 @@ jobs:
         include:
           - variant: full
             dockerfile: Dockerfile.arm
-          - variant: simple
-            dockerfile: Dockerfile_simple.arm
     steps:
       - name: Free disk space
         # OpenMS source build needs ~25 GB of scratch space; the ARM runner
@@ -233,7 +229,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [full, simple]
+        variant: [full]
     steps:
       - name: Compute lowercase image name
         run: echo "IMAGE_NAME_LC=${IMAGE_NAME,,}" >> "$GITHUB_ENV"
@@ -300,7 +296,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [full, simple]
+        variant: [full]
     steps:
       - uses: actions/checkout@v4
 
@@ -473,7 +469,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [full, simple]
+        variant: [full]
     steps:
       - name: Download validated SIF artifact
         uses: actions/download-artifact@v4
@@ -535,12 +531,6 @@ jobs:
             arch: amd64
             runner: ubuntu-latest
           - variant: full
-            arch: arm64
-            runner: ubuntu-24.04-arm
-          - variant: simple
-            arch: amd64
-            runner: ubuntu-latest
-          - variant: simple
             arch: arm64
             runner: ubuntu-24.04-arm
     steps:
@@ -670,12 +660,6 @@ jobs:
             arch: amd64
             runner: ubuntu-latest
           - variant: full
-            arch: arm64
-            runner: ubuntu-24.04-arm
-          - variant: simple
-            arch: amd64
-            runner: ubuntu-latest
-          - variant: simple
             arch: arm64
             runner: ubuntu-24.04-arm
     steps:
