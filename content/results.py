@@ -9,6 +9,8 @@ import pyopenms as poms
 import re
 import io
 import zipfile
+import os
+from pathlib import Path
 
 from src.common.common import (
     page_setup,
@@ -116,6 +118,8 @@ def annotation_matches_filter_v(annotation: str, ion_filter: str) -> bool:
         return True
     if ion_filter == "exclude_b_y_ions":
         return not (annotation.startswith("b") or annotation.startswith("y"))
+    if ion_filter == "only_b_y_ions":
+        return annotation.startswith("b") or annotation.startswith("y")
     if ion_filter == "only_b_ions":
         return annotation.startswith("b")
     if ion_filter == "only_y_ions":
@@ -276,12 +280,22 @@ with tabs[0]:
                 if file_name_wout_out == "Example": 
                     file_name_wout_out = "Example_RNA_UV_XL"
 
+                mzml_path = None
+
+                workspace = Path(str(st.session_state.workspace))
+
+                # Convert "../workspaces-nuxl-app/default" or "..\\workspaces-nuxl-app\\default"
+                # into "workspaces-nuxl-app/default"
+                if workspace.parts and workspace.parts[0] == "..":
+                    workspace = Path(*workspace.parts[1:])
+
                 mzml_path = (
                     Path.cwd().parent
-                    / str(st.session_state.workspace)
+                    / workspace
                     / "mzML-files"
                     / f"{file_name_wout_out}.mzML"
                 )
+
 
                 #st.info(f"Path: {mzml_path}")
 
@@ -321,18 +335,20 @@ with tabs[0]:
 
                         ion_annotation_filter_options_v = [
                             "all_annotated_peaks",
-                            "exclude_b_y_ions",
                             "only_b_ions",
                             "only_y_ions",
+                            "only_b_y_ions",
+                            "exclude_b_y_ions",
                             "only_MI_ions",
                             "only_precursor_ions",
                         ]
 
                         ion_annotation_filter_labels_v = {
                             "all_annotated_peaks": "All",
-                            "exclude_b_y_ions": "Exclude b/y-ions",
                             "only_b_ions": "b-ions only",
                             "only_y_ions": "y-ions only",
+                            "only_b_y_ions": "b/y-ions only",
+                            "exclude_b_y_ions": "Exclude b/y-ions",
                             "only_MI_ions": "MI-ions only",
                             "only_precursor_ions": "Precursor-ions only",
                         }
@@ -397,6 +413,8 @@ with tabs[0]:
                                     f"The corresponding {file_name_wout_out}.mzML file could not be found. "
                                     "Please re-upload the mzML file to visualize all experimental peaks."
                                 )
+                                #st.info(mzml_path)
+                                
                             else:
                                 ms2_peak_data = ms2_peak_map_v.get(selected_spec_id_v)
 
