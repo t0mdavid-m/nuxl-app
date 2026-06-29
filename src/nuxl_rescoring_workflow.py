@@ -72,6 +72,8 @@ class Workflow(WorkflowManager):
             st.success("Valid initial idXML files and MGF files synced into workflow input folders.")
             st.rerun()
 
+        self._upload_initial_idxml_files()
+
         self._show_available_files(
             key="idXML-files",
             title="idXML files",
@@ -98,6 +100,65 @@ class Workflow(WorkflowManager):
                 "Available MGF files in workspace. "
             ),
         )
+
+    def _upload_initial_idxml_files(self) -> None:
+        workspace_dir = Path(self.workflow_dir).parent
+        global_result_dir = workspace_dir / "result-files"
+        target_dir = Path(self.workflow_dir, "input-files", "idXML-files")
+
+        global_result_dir.mkdir(parents=True, exist_ok=True)
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+        uploaded_files = st.file_uploader(
+            "Upload initial NuXL idXML files",
+            type=["idXML", "idxml"],
+            accept_multiple_files=True,
+            help=(
+                "Upload only initial NuXL `.idXML` files before Percolator/FDR. "
+                "Files containing `_0.0100`, `_0.1000`, `_1.0000`, `_perc`, "
+                "feature prefixes, or RDDF output names are rejected. Accepted files "
+                "are saved to the global result-files folder and made available here."
+            ),
+            key="rescoring-initial-idxml-upload",
+        )
+
+        if not uploaded_files:
+            return
+
+        saved_files: list[str] = []
+        rejected_files: list[str] = []
+
+        for uploaded_file in uploaded_files:
+            file_name = Path(uploaded_file.name).name
+
+            if not self._is_valid_initial_idxml_name(file_name):
+                rejected_files.append(file_name)
+                continue
+
+            global_file = self._unique_file_path(global_result_dir / file_name)
+
+            with open(global_file, "wb") as handle:
+                handle.write(uploaded_file.getbuffer())
+
+            workflow_file = target_dir / global_file.name
+            shutil.copy2(global_file, workflow_file)
+            saved_files.append(global_file.name)
+
+        if saved_files:
+            st.success(
+                "Uploaded valid initial idXML file(s) to global result-files "
+                "and this workflow: "
+                + ", ".join(saved_files)
+            )
+
+        if rejected_files:
+            st.warning(
+                "Rejected idXML file(s) because rescoring requires initial NuXL "
+                "idXML files before Percolator/FDR. File names must not contain "
+                "`_0.0100`, `_0.1000`, `_1.0000`, `_perc`, feature prefixes, "
+                "or `RDDF_`: "
+                + ", ".join(rejected_files)
+            )
 
     def _sync_global_idxml_files(self) -> None:
         workspace_dir = Path(self.workflow_dir).parent
