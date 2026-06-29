@@ -1,15 +1,9 @@
 # Dockerfile.arm64 for OpenMS NuXL App on Linux ARM64 / aarch64.
 # Builds OpenMS from the NuXL/develop branch, TOPP tools, third-party tools,
 # installs the Streamlit NuXL app runtime, and starts Streamlit on PORT.
-#
-# Build on ARM64 host:
-#   docker build --no-cache -f Dockerfile.arm64 -t nuxlapp:latest-arm64 . 2>&1 | tee build-arm64.log
-#
-# Build from non-ARM host with buildx:
-#   docker buildx build --platform linux/arm64 --no-cache -f Dockerfile.arm64 -t nuxlapp:latest-arm64 --load . 2>&1 | tee build-arm64.log
-#
-# Run:
-#   docker run --platform linux/arm64 -p 8501:8501 nuxlapp:latest-arm64
+
+# docker buildx build -f Dockerfile.arm -t nuxlapparm:latest . 2>&1 | tee build-arm64.log
+# --no-cache is recommended for a clean build, but will take longer.
 
 FROM ubuntu:22.04 AS setup-build-system
 

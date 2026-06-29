@@ -8,6 +8,7 @@
 # prune unused images/etc. to free disc space (e.g. might be needed on gitpod). Use with care.: docker system prune --all --force
 
 # This Dockerfile builds OpenMS on NuXL branch, the TOPP tools, pyOpenMS and thidparty tools.
+# docker buildx build --load -t nuxlapp:latest .
 FROM ubuntu:22.04 AS setup-build-system
 
 ARG OPENMS_REPO=https://github.com/Arslan-Siraj/OpenMS.git
