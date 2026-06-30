@@ -1,6 +1,12 @@
 # OpenMS NuXL App [![Open Template!](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://openms-template.streamlit.app/)
 
-![Protein-Nucleic-acid Cross-linking](assets/NuXL_image.png)
+<p align="center">
+  <img src="assets/NuXL_image.png" alt="Protein-Nucleic-acid Cross-linking" width="700">
+</p>
+
+<p align="center">
+  <strong>NuXLApp: Interactive Data Analysis and Visualization for Protein–Nucleic Acid Crosslinking Mass Spectrometry</strong>
+</p>
 
 ## Main headings
 
