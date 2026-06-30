@@ -38,19 +38,17 @@ Users can download the example files from **Load example file** tab to current w
 
 Select the `.mzML/.raw` and `.fasta` files for analysis, configure user settings including NuXL advanced parameters, and start the analysis using the **Run-analysis** button.
 
-User can terminate the analysis immediately using the **Terminate/Clear** button and user can see the real-time log of search engine.
 Once the analysis completed successfully, the output table will be displayed on the page, along with downloadable links for crosslink identification files for that particular analysis.
 
 ### 3. ⚙️ Rescoring
 Select without FDR-controlled `.idXML` file from output of NuXL search engine. The name of file pattern is `(raw or mzML file_name).idXML`. If the NuxL search engine succesfully run, the file will showup here. After including the features start the analysis using the **Run-rescoring** button.
 
-User can terminate the rescoring analysis immediately using the **Terminate/Clear** button and User can see the real-time log of rescoring.
 Once the analysis completed successfully, the comparison PseudoROC curve at CSM-level FDR will generated, and available for download.
 
 ### 4. ⚙️ DIA spectra library generation
 Select the experiments with (`.mzML`) it will extract the identified protein-NA and peptides from NuXL output at 1% CSM-level FDR, available in `.idXML` files. Optionally, user can do iRT alignment by providing MSFragger `library.tsv`, with `linear` or `piecewise` calibration mode.
 
-User can start the analysis using the **Generate Library** button. User can terminate the rescoring analysis immediately using the **Terminate/Clear** button and User can see the real-time log of spectral library generation.
+User can see the real-time log of spectral library generation and download the output files.
 
 ### 5. 📊 View your results
 Here, user can visualize and explore the output of the search engine. All crosslink output files in the workspace are available on the **View Results** tab.
@@ -69,7 +67,6 @@ In the web app, collaborators can visualize files by sharing a unique workspace 
 ### 6. 📖 Documentation
 
 Documentation for **users** is included as pages in [this template app](https://abi-services.cs.uni-tuebingen.de/streamlit-template/) (todo link add), indicated by the 📖 icon. This is user guide for the analysis implement in NuXLApp.
-
 
 ---
 
