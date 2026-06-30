@@ -1,8 +1,5 @@
 # OpenMS NuXL App [![Open Template!](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://openms-template.streamlit.app/)
 
-Welcome to the OpenMS NuXL App, a web application for the NuXL protein-nucleic acid search engine built using [OpenMS](https://openms.de/) and [pyOpenMS](https://pyopenms.readthedocs.io/en/latest/).<br/>
-**website:** [https://abi-services.cs.uni-tuebingen.de/nuxl/](https://abi-services.cs.uni-tuebingen.de/nuxl/)
-
 ![Protein-Nucleic-acid Cross-linking](assets/NuXL_image.png)
 
 ## Main headings
