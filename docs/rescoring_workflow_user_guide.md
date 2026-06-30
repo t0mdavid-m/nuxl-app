@@ -70,8 +70,6 @@ If **Max correlation features** is disabled, this file is not used.
 
 🧪 This option defines the experimental cross-linking protocol used for the sample. The selected protocol determines which retention-time model and calibration settings are used during rescoring. Choose the option that matches the NuXL experiment.
 
-Examples:
-
 ```text
 RNA_UV     → use for UV cross-linking experiments (model fine-tuned specific for UV, also use UV calibration)
 RNA_DEB    → use for DEB cross-linking experiments (model fine-tuned specific for DEB, also use DEB calibration)

@@ -8,16 +8,25 @@ page_setup()
 
 st.title("Documentation")
 
+st.markdown(
+    """
+    This page provides user guides for the main NuXLApp workflows.
+
+    Select a workflow guide below to learn how to prepare input files, configure
+    parameters, run the analysis, and understand the generated output files.
+    """
+)
+
 cols = st.columns(2)
 
 pages = {
-    "NuXL Workflow User Guide": Path("docs", "nuxl_workflow_user_guide.md"),
-    "Rescoring Workflow User Guide": Path("docs", "rescoring_workflow_user_guide.md"),
-    "DIA Library Generation User Guide": Path("docs", "dia_library_generation_workflow_user_guide.md"),
+    "NuXL Workflow": Path("docs", "nuxl_workflow_user_guide.md"),
+    "Rescoring Workflow": Path("docs", "rescoring_workflow_user_guide.md"),
+    "DIA Library Generation": Path("docs", "dia_library_generation_workflow_user_guide.md"),
 }
 
 page = cols[0].selectbox(
-    "**Content**",
+    "**Workflow user guide**",
     list(pages.keys()),
 )
 
@@ -45,7 +54,7 @@ def render_markdown_with_local_images(markdown_content: str) -> None:
                 st.image(
                     str(image_path),
                     caption=alt_text,
-                    width=800,
+                    width=950,
                 )
             else:
                 st.warning(f"Image not found: {image_path}")
