@@ -4,7 +4,6 @@ from pathlib import Path
 import streamlit as st
 from src.common.common import page_setup
 
-
 page_setup()
 
 st.title("Documentation")
@@ -12,8 +11,9 @@ st.title("Documentation")
 cols = st.columns(2)
 
 pages = {
-    "NuXL Workflow User Tutorial": Path("docs", "nuxl_workflow_user_guide.md"),
-    "NuXL Rescoring Workflow User Tutorial": Path("docs", "nuxl_rescoring_workflow_user_guide.md"),
+    "NuXL Workflow User Guide": Path("docs", "nuxl_workflow_user_guide.md"),
+    "Rescoring Workflow User Guide": Path("docs", "rescoring_workflow_user_guide.md"),
+    "DIA Library Generation User Guide": Path("docs", "dia_library_generation_workflow_user_guide.md"),
 }
 
 page = cols[0].selectbox(
@@ -45,7 +45,7 @@ def render_markdown_with_local_images(markdown_content: str) -> None:
                 st.image(
                     str(image_path),
                     caption=alt_text,
-                    use_column_width=True,
+                    width=800,
                 )
             else:
                 st.warning(f"Image not found: {image_path}")
