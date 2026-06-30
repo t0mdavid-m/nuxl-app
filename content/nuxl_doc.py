@@ -12,8 +12,8 @@ st.title("Documentation")
 cols = st.columns(2)
 
 pages = {
-    "NuXL Workflow User Tutorial": Path("docs", "nuxl_workflow_user_tutorial.md"),
-    "NuXL Rescoring Workflow User Tutorial": Path("docs", "nuxl_rescoring_workflow_user_tutorial.md"),
+    "NuXL Workflow User Tutorial": Path("docs", "nuxl_workflow_user_guide.md"),
+    "NuXL Rescoring Workflow User Tutorial": Path("docs", "nuxl_rescoring_workflow_user_guide.md"),
 }
 
 page = cols[0].selectbox(
