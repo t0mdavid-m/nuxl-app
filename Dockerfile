@@ -95,6 +95,8 @@ RUN wget -q https://github.com/conda-forge/miniforge/releases/latest/download/Mi
     && bash Miniforge3-Linux-x86_64.sh -b \
     && rm -f Miniforge3-Linux-x86_64.sh
 
+RUN chmod o+x /root
+
 COPY environment.yml /tmp/environment.yml
 RUN /root/miniforge3/bin/mamba env create -f /tmp/environment.yml
 RUN echo "mamba activate streamlit-env" >> ~/.bashrc
@@ -121,6 +123,14 @@ RUN cp -r ${OPENMS_DIR}/OpenMS/share/OpenMS /openms/share
 ENV OPENMS_DATA_PATH="/openms/share/"
 
 FROM compile-openms AS run-app
+
+RUN apt-get update && apt-get install -y --no-install-recommends redis-server nginx \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /var/lib/redis
+
+RUN mkdir -p /workspaces-nuxl-app /mounted-data
+
 ARG PORT=8501
 ENV PORT=${PORT}
 
@@ -140,12 +150,11 @@ COPY default-parameters.json /app/default-parameters.json
 
 RUN echo "0 3 * * * /root/miniforge3/envs/streamlit-env/bin/python /app/clean-up-workspaces.py >> /app/clean-up-workspaces.log 2>&1" | crontab -
 
-RUN echo "#!/bin/bash" > /app/entrypoint.sh && \
-    echo "set -e" >> /app/entrypoint.sh && \
-    echo "source /root/miniforge3/bin/activate streamlit-env" >> /app/entrypoint.sh && \
-    echo "service cron start" >> /app/entrypoint.sh && \
-    echo "exec streamlit run /app/app.py --server.port=${PORT}" >> /app/entrypoint.sh
+ENV RQ_WORKER_COUNT=1
+ENV REDIS_URL=redis://localhost:6379/0
+ENV STREAMLIT_SERVER_COUNT=1
 
+COPY docker/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 RUN /root/miniforge3/bin/mamba run -n streamlit-env python /app/hooks/hook-analytics.py
@@ -154,7 +163,7 @@ RUN jq '.online_deployment = true' /app/settings.json > /app/tmp.json && mv /app
 
 RUN curl -L \
   -o /app/OpenMS-NuXLApp.zip \
-  https://github.com/Arslan-Siraj/nuxl-app/releases/download/0.8.0/OpenMS-NuXLApp.zip
+  https://github.com/Arslan-Siraj/nuxl-app/releases/download/0.7.0/OpenMS-NuXLApp.zip
 
 EXPOSE $PORT
 ENTRYPOINT ["/app/entrypoint.sh"]
