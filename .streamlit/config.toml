@@ -7,7 +7,7 @@ developmentMode = false
 [server]
 address = "0.0.0.0"
 maxUploadSize = 50000
-port = 8505 
+port = 8501 
 
 [secrets]
 # Kubernetes mounts the optional `streamlit-secrets` Secret at /app/admin-secrets/;
