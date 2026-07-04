@@ -90,8 +90,7 @@ The workspaces for the project will be locally generated in the `workspaces-nuxl
 
 This repository contains two Dockerfiles.
 
-1. `Dockerfile`: This Dockerfile builds all dependencies for the app including Python packages and the OpenMS TOPP tools. Recommended for more complex workflows where you want to use the OpenMS TOPP tools for instance with the **TOPP Workflow Framework**.
-2. `Dockerfile_simple`: This Dockerfile builds only the Python packages. Recommended for simple apps using pyOpenMS only.
+1. `Dockerfile`: This Dockerfile builds all dependencies for the nuxl-app including Python packages and the OpenMS TOPP tools (NuXL search engine + required thirdparty).
 
 1. **Install Docker**
 
@@ -117,20 +116,11 @@ This repository contains two Dockerfiles.
    
 3. **Clone the repository**
    ```bash
-   git clone https://github.com/OpenMS/streamlit-template.git
-   cd streamlit-template
+   git clone https://github.com/Arslan-Siraj/nuxl-app.git
+   cd nuxl-app
    ```
    
-4. **Specify GitHub token (to download Windows executables).**
-   
-   Create a temporary `.env` file with your Github token.
-   
-   It should contain only one line:
-   `GITHUB_TOKEN=<your-github-token>`
-
-   ℹ️ **Note:** This step is not strictly required, but skipping it will remove the option to download executables from the WebApp.
-   
-3. **Build & Launch the App**
+4. **Build & Launch the App**
 
    To build and start the containers.
    From the project root directory:
@@ -141,20 +131,20 @@ This repository contains two Dockerfiles.
      At the end, you should see this:
       ```
       [+] Running 2/2
-       ✔ openms-streamlit-template            Built      
-       ✔ Container openms-streamlit-template  Started  
+       ✔ openms-nuxl-app            Built      
+       ✔ Container openms-nuxl-app  Started  
       ```
       
       To make sure server started successfully, run `docker compose ps`. You should see `Up` status:
       ```
       CONTAINER ID   IMAGE                       COMMAND                  CREATED         STATUS                 PORTS                                           NAMES
-      4abe0603e521   openms_streamlit_template   "/app/entrypoint.sh …"   7 minutes ago   Up 7 minutes           0.0.0.0:8501->8501/tcp, :::8501->8501/tcp       openms-streamlit-template
+      4abe0803e521   openms-nuxl-app   "/app/entrypoint.sh …"   7 minutes ago   Up 7 minutes           0.0.0.0:8501->8501/tcp, :::8501->8501/tcp       openms-nuxl-app
       ```
    
       To map the port to default streamlit port `8501` and launch.
       
       ```
-      docker run -p 8505:8501 openms_streamlit_template
+      docker run -p 8505:8501 openms-nuxl-app
       ```
 
    ##### Mount a local data directory
@@ -167,7 +157,7 @@ This repository contains two Dockerfiles.
    ```
    docker run -p 8501:8501 \
      -v /path/on/host:/mounted-data:ro \
-     openms_streamlit_template
+     openms-nuxl-app
    ```
 
    The upload widget auto-detects the mount: when the directory exists at
