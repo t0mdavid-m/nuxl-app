@@ -1,7 +1,7 @@
 # NuXLApp: Interactive Data Analysis and Visualization for Protein–Nucleic Acid Crosslinking Mass Spectrometry [![Open Template!](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://openms-template.streamlit.app/)
 
 <p align="center">
-  <img src="assets/NuXL_image.png" alt="Protein-Nucleic-acid Cross-linking" width="700">
+  <img src="assets/NuXL_image.png" alt="Protein-Nucleic-acid Cross-linking" width="900">
 </p>
 
 ## Table of content
@@ -179,31 +179,32 @@ This repository contains two Dockerfiles.
 
 ### 🛰️ 4. Run with Apptainer / Singularity (HPC)
 
-Apptainer (formerly Singularity) is the dominant container runtime on HPC
-clusters. CI publishes prebuilt SIFs to GHCR via ORAS, so you can pull a
-ready-to-run image with no on-the-fly OCI→SIF conversion and run it as your
-user — no root, no `--writable-tmpfs` required:
+Apptainer, formerly Singularity, is commonly used on HPC clusters. The CI workflow builds, tests, and publishes a 
+prebuilt SIF image to GHCR via ORAS. This allows NuXLApp to be pulled and run without root privileges 
+
+and without requiring on-the-fly Docker-to-SIF conversion.
 
 ```bash
-apptainer pull --name openms-streamlit-template.sif \
-  oras://ghcr.io/openms/streamlit-template/sif:latest
+apptainer pull --name nuxl-app.sif \
+  oras://ghcr.io/arslan-siraj/nuxl-app/sif:latest
+
 apptainer run \
   --bind /path/to/data:/mounted-data:ro \
-  --bind /path/to/workspaces:/workspaces-streamlit-template \
-  openms-streamlit-template.sif
+  --bind /path/to/workspaces:/workspaces-nuxl-app \
+  nuxl-app.sif
 ```
 
-Available tags follow the same scheme as the Docker images: `latest`,
-`main-full`, `main-simple`, `v*-full`, `v*-simple`, and per-commit SHAs.
-If a tag hasn't been prebuilt yet (e.g. a PR branch), fall back to on-the-fly
-conversion: `apptainer pull docker://ghcr.io/openms/streamlit-template:<tag>`.
-Requires apptainer 1.1+ or singularity-ce 3.10+ for the `oras://` transport.
+Available tags follow the same scheme as the Docker images: latest,
+main-full, v*-full, and per-commit SHAs. If a tag has not been prebuilt
+yet, fall back to on-the-fly conversion:
+`apptainer pull docker://ghcr.io/arslan-siraj/nuxl-app:<tag>`.
+This requires Apptainer with support for the `oras://` transport.
 
-The entrypoint auto-detects the read-only root filesystem (set by apptainer's
-default isolation) and switches its runtime state — Redis data directory,
-nginx config, PID files — to `/tmp/openms-runtime-$$`, which is always
-writable inside an apptainer container. The workspace cleanup cron job is
-skipped in this mode; rerun `clean-up-workspaces.py` manually if needed.
+The entrypoint auto-detects Apptainer/Singularity, or more generally a
+read-only root filesystem, and switches its runtime state, Redis data
+directory, nginx config, and PID files, to a writable temporary runtime
+directory inside the container. The workspace cleanup cron job is skipped in
+this mode; rerun clean-up-workspaces.py manually if needed.
 
 ---
 
