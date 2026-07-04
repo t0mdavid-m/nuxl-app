@@ -9,7 +9,7 @@
 - [Description](#description)
 - [How to do analysis](#how-todo-analyis)
 - [Access NuXLApp](#access-nuxlapp)
-- [Legal pages](#legal-pages-impressum-privacy-policy-terms-of-use)
+- [Legal Information](#legal-information)
 - [Citation](#citation)
 - [Contact](#contact)
 
@@ -198,12 +198,13 @@ this mode; rerun clean-up-workspaces.py manually if needed.
 
 ---
 
-## ⚖️ Legal pages (Impressum, Privacy Policy, Terms of Use)
+## ⚖️ Legal Information
 
-Every page shows **Impressum**, **Privacy Policy** and **Terms of Use** links at
+Every page shows [**Impressum**](https://openms.de/impressum), [**Privacy Policy**](https://openms.de/privacy) and [**Terms of Use**](https://openms.de/terms) links at
 the bottom of the sidebar, and the GDPR consent banner links to the privacy
-policy. By default these point to the centrally maintained official OpenMS pages
-(`https://openms.de/impressum`, `/privacy`, `/terms`).
+policy. 
+
+By default these point to the centrally maintained by official [**OpenMS**](https://openms.de) documentation.
 
 ---
 
