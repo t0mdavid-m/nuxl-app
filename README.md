@@ -198,7 +198,7 @@ this mode; rerun clean-up-workspaces.py manually if needed.
 
 ---
 
-## ⚖️ Legal Information
+## Legal Information
 
 Every page shows [**Impressum**](https://openms.de/impressum), [**Privacy Policy**](https://openms.de/privacy) and [**Terms of Use**](https://openms.de/terms) links at
 the bottom of the sidebar, and the GDPR consent banner links to the privacy
