@@ -1,5 +1,5 @@
 services:
-  openms-streamlit-template:
+  openms-nuxl-app:
     build:
       context: .
       dockerfile: Dockerfile
